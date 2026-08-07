@@ -1,0 +1,517 @@
+/* --------------------------------------------------------------------------
+   1. Industrial HMI environment and boot sequence
+   -------------------------------------------------------------------------- */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.38'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: #090c0d;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+.boot-screen.is-complete {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.boot-content {
+  position: relative;
+  width: min(640px, calc(100% - 48px));
+}
+
+.boot-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 600 20px var(--font-display);
+  letter-spacing: 0.17em;
+}
+
+.boot-brand-accent {
+  color: var(--color-accent);
+}
+
+.boot-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
+  clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%);
+  font: 500 11px var(--font-mono);
+}
+
+.boot-progress-track {
+  height: 2px;
+  margin: 50px 0 17px;
+  overflow: hidden;
+  background: #263133;
+}
+
+.boot-progress-bar {
+  width: 0;
+  height: 100%;
+  background: var(--color-accent);
+  box-shadow: 0 0 18px var(--color-accent);
+  transition: width 0.17s linear;
+}
+
+.boot-status-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-muted);
+  font: 400 11px var(--font-mono);
+  letter-spacing: 0.09em;
+}
+
+.boot-log {
+  min-height: 46px;
+  margin: 34px 0 0;
+  color: #6d7c7a;
+  font: 400 10px/1.8 var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+/* --------------------------------------------------------------------------
+   2. HMI frame and header
+   -------------------------------------------------------------------------- */
+.portfolio-app {
+  height: 100vh;
+  max-width: 1480px;
+  padding: 18px;
+  margin: auto;
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity 0.75s ease, transform 0.75s ease;
+}
+
+.portfolio-app.is-ready {
+  opacity: 1;
+  transform: none;
+}
+
+.hmi-frame {
+  position: relative;
+  height: calc(100vh - 36px);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: linear-gradient(150deg, rgba(20, 28, 30, 0.92), rgba(7, 10, 12, 0.92));
+}
+
+.hmi-frame::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(90deg, transparent 0, transparent calc(100% - 1px), rgba(255, 255, 255, 0.025) calc(100% - 1px)),
+    linear-gradient(transparent 0, transparent calc(100% - 1px), rgba(255, 255, 255, 0.025) calc(100% - 1px));
+  background-size: 72px 72px;
+  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+}
+
+.topbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 68px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  color: var(--color-text);
+  font: 600 17px var(--font-display);
+  letter-spacing: 0.14em;
+}
+
+.logo-mark {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  background: var(--color-accent);
+  color: #10130b;
+  clip-path: polygon(0 0, 72% 0, 100% 28%, 100% 100%, 28% 100%, 0 72%);
+  font: 700 12px var(--font-mono);
+}
+
+.topbar-meta {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  color: var(--color-muted);
+  font: 400 10px var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+.topbar-meta time {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-accent);
+}
+
+.status-indicator::before {
+  display: block;
+  width: 7px;
+  height: 7px;
+  background: var(--color-accent);
+  box-shadow: 0 0 13px var(--color-accent);
+  content: "";
+}
+
+/* --------------------------------------------------------------------------
+   3. Application launcher and status panels
+   -------------------------------------------------------------------------- */
+.workspace {
+  position: relative;
+  z-index: 1;
+  height: calc(100% - 68px);
+}
+
+.launcher {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(28px, 5vw, 72px);
+  overflow: hidden;
+}
+
+.launcher-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+
+.interface-title {
+  margin: 8px 0 0;
+  font: 600 clamp(25px, 3.1vw, 44px)/1 var(--font-display);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.interface-title span,
+.launcher-heading .eyebrow {
+  color: var(--color-accent);
+}
+
+.interface-status {
+  min-width: 169px;
+  padding: 12px 13px;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font: 400 10px/1.6 var(--font-mono);
+}
+
+.interface-status strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.launcher-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.module-count {
+  color: var(--color-muted);
+  font: 400 10px var(--font-mono);
+}
+
+.application-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(126px, 1fr));
+  gap: 12px;
+}
+
+.application-tile {
+  position: relative;
+  min-height: 194px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: linear-gradient(145deg, rgba(26, 37, 39, 0.82), rgba(12, 18, 20, 0.72));
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.application-tile::before {
+  position: absolute;
+  top: -25px;
+  right: -25px;
+  width: 95px;
+  height: 95px;
+  border: 1px solid var(--color-accent);
+  content: "";
+  opacity: 0.22;
+  transform: rotate(45deg);
+}
+
+.application-tile:hover,
+.application-tile:focus-visible {
+  border-color: rgba(214, 255, 50, 0.72);
+  background: linear-gradient(145deg, rgba(41, 56, 43, 0.87), rgba(12, 21, 20, 0.88));
+  transform: translateY(-4px);
+}
+
+.application-index {
+  position: absolute;
+  top: 16px;
+  right: 15px;
+  color: var(--color-muted);
+  font: 400 10px var(--font-mono);
+}
+
+.application-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 48px;
+  place-items: center;
+  border: 1px solid rgba(214, 255, 50, 0.55);
+  color: var(--color-accent);
+  clip-path: polygon(0 0, 80% 0, 100% 20%, 100% 100%, 20% 100%, 0 80%);
+  font: 500 19px var(--font-display);
+}
+
+.application-tile h2 {
+  margin: 0;
+  font: 600 25px/1 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.application-tile p {
+  margin: 7px 0 0;
+  color: var(--color-muted);
+  font: 400 10px var(--font-mono);
+}
+
+.launcher-status {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 12px;
+  margin-top: 13px;
+}
+
+.availability-panel,
+.content-notice {
+  min-height: 117px;
+  padding: 17px;
+  border: 1px solid var(--color-border);
+  background: rgba(11, 17, 19, 0.5);
+}
+
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-muted);
+  font: 400 10px var(--font-mono);
+}
+
+.panel-heading strong {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.availability-bars {
+  display: flex;
+  height: 50px;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.availability-bars span {
+  display: block;
+  flex: 1;
+  height: 70%;
+  background: var(--color-accent);
+  opacity: 0.72;
+}
+
+.availability-bars span:nth-child(2),
+.availability-bars span:nth-child(4) {
+  height: 48%;
+}
+
+.availability-bars span:nth-child(3) {
+  height: 90%;
+}
+
+.content-notice {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.content-notice strong {
+  font: 500 14px var(--font-display);
+  letter-spacing: 0.06em;
+}
+
+.content-notice small {
+  color: var(--color-muted);
+  font: 400 10px var(--font-mono);
+}
+
+.frame-footer {
+  position: absolute;
+  right: 18px;
+  bottom: 13px;
+  z-index: 2;
+  color: #53615f;
+  font: 400 9px var(--font-mono);
+  letter-spacing: 0.08em;
+}
+
+.restart-button {
+  padding: 5px;
+  border: 0;
+  background: none;
+  color: #62716f;
+  cursor: pointer;
+  font: 400 10px var(--font-mono);
+}
+
+.restart-button:hover,
+.restart-button:focus-visible {
+  color: var(--color-accent);
+}
+
+/* --------------------------------------------------------------------------
+   4. Modal application windows
+   -------------------------------------------------------------------------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  visibility: hidden;
+  background: rgba(3, 5, 6, 0.72);
+  opacity: 0;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.modal.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+.modal-window {
+  width: min(680px, 100%);
+  border: 1px solid rgba(214, 255, 50, 0.45);
+  background: linear-gradient(145deg, #172022, var(--color-surface-deep));
+  box-shadow: 0 22px 100px rgba(0, 0, 0, 0.55);
+  transform: translateY(15px);
+  transition: transform 0.25s ease;
+}
+
+.modal.is-open .modal-window {
+  transform: none;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-identifier {
+  color: var(--color-accent);
+  font: 400 10px var(--font-mono);
+  letter-spacing: 0.09em;
+}
+
+.modal-close {
+  width: 29px;
+  height: 29px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.modal-close:hover,
+.modal-close:focus-visible {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.modal-body {
+  padding: clamp(24px, 5vw, 46px);
+}
+
+.modal-title {
+  margin: 8px 0 20px;
+  font: 600 clamp(38px, 7vw, 62px) / 0.88 var(--font-display);
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+.modal-title-accent {
+  color: var(--color-accent);
+}
+
+.modal-body p {
+  max-width: 500px;
+  color: #a9b4b2;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.modal-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 30px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font: 400 10px var(--font-mono);
+}
+
+.modal-placeholder::before {
+  width: 7px;
+  height: 7px;
+  background: var(--color-warning);
+  box-shadow: 0 0 9px var(--color-warning);
+  content: "";
+}

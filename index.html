@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Personal interactive portfolio designed as a premium industrial HMI." />
+  <title>CONTROL//OS &mdash; Portfolio Interface</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/hmi.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+
+  <!-- Three.js will be imported here when the 3D environment is approved. -->
+  <script src="js/hmi.js" defer></script>
+  <script src="js/navigation.js" defer></script>
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <section class="boot-screen" id="bootScreen" aria-label="System booting" aria-live="polite">
+    <div class="boot-content">
+      <div class="boot-brand">
+        <span class="boot-mark" aria-hidden="true">C//</span>
+        CONTROL<span class="boot-brand-accent">//</span>OS
+      </div>
+      <div class="boot-progress-track" aria-hidden="true">
+        <div class="boot-progress-bar" id="bootProgress"></div>
+      </div>
+      <div class="boot-status-row">
+        <span id="bootStatus">INITIALIZING INTERFACE</span>
+        <span id="bootPercent">00%</span>
+      </div>
+      <p class="boot-log" id="bootLog">&gt; checking interface protocol&hellip;</p>
+    </div>
+  </section>
+
+  <div class="portfolio-app" id="portfolioApp" aria-hidden="true">
+    <div class="hmi-frame">
+      <header class="topbar">
+        <div class="logo">
+          <span class="logo-mark" aria-hidden="true">C//</span>
+          PERSONAL CONTROL SYSTEM
+        </div>
+        <div class="topbar-meta">
+          <span>BUILD 01.26.08</span>
+          <span>UTC <time id="clock" aria-label="Current UTC time">--:--:--</time></span>
+          <span class="status-indicator">PORTFOLIO MODE</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="launcher" aria-labelledby="launcherTitle">
+          <div class="launcher-intro">
+            <div>
+              <div class="eyebrow">System overview &middot; Interactive portfolio</div>
+              <h1 class="interface-title" id="launcherTitle">Portfolio <span>application launcher.</span></h1>
+            </div>
+            <div class="interface-status">
+              INTERFACE STATUS<br />
+              <strong>READY FOR INPUT</strong>
+            </div>
+          </div>
+
+          <div class="launcher-heading">
+            <span class="eyebrow">Select an application</span>
+            <span class="module-count">05 MODULES INSTALLED</span>
+          </div>
+
+          <section class="application-grid" aria-label="Portfolio applications">
+            <button class="application-tile" type="button" data-module="resume" aria-haspopup="dialog">
+              <span class="application-index">APP_01</span>
+              <span class="application-icon" aria-hidden="true">CV</span>
+              <h2>Resume</h2>
+              <p>PROFILE / EXPERIENCE</p>
+            </button>
+            <button class="application-tile" type="button" data-module="games" aria-haspopup="dialog">
+              <span class="application-index">APP_02</span>
+              <span class="application-icon" aria-hidden="true">GX</span>
+              <h2>Games</h2>
+              <p>PLAY / EXPERIMENTS</p>
+            </button>
+            <button class="application-tile" type="button" data-module="projects" aria-haspopup="dialog">
+              <span class="application-index">APP_03</span>
+              <span class="application-icon" aria-hidden="true">PR</span>
+              <h2>Projects</h2>
+              <p>SELECTED WORK</p>
+            </button>
+            <button class="application-tile" type="button" data-module="contact" aria-haspopup="dialog">
+              <span class="application-index">APP_04</span>
+              <span class="application-icon" aria-hidden="true">@</span>
+              <h2>Contact</h2>
+              <p>OPEN CHANNEL</p>
+            </button>
+            <button class="application-tile" type="button" data-module="bio" aria-haspopup="dialog">
+              <span class="application-index">APP_05</span>
+              <span class="application-icon" aria-hidden="true">ID</span>
+              <h2>Biography</h2>
+              <p>ORIGIN / OUTLOOK</p>
+            </button>
+          </section>
+
+          <div class="launcher-status">
+            <section class="availability-panel" aria-label="Module availability status">
+              <div class="panel-heading">
+                <span>MODULE AVAILABILITY</span>
+                <strong>05 / 05 READY</strong>
+              </div>
+              <div class="availability-bars" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </section>
+            <aside class="content-notice">
+              <strong>NEXT: ADD PORTFOLIO CONTENT.</strong>
+              <small>Each application is ready for its real information.</small>
+            </aside>
+          </div>
+        </section>
+      </main>
+
+      <footer class="frame-footer">
+        CONTROL//OS v1.0.0 &middot;
+        <button class="restart-button" type="button" id="restartButton">RESTART SEQUENCE</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal" id="moduleModal" aria-hidden="true" aria-labelledby="modalTitle" aria-modal="true" role="dialog">
+    <section class="modal-window" role="document">
+      <header class="modal-header">
+        <span class="modal-identifier" id="modalIdentifier">APP_01 / RESUME</span>
+        <button class="modal-close" id="modalClose" type="button" aria-label="Close application">&times;</button>
+      </header>
+      <div class="modal-body">
+        <div class="eyebrow">Module opening</div>
+        <h2 class="modal-title" id="modalTitle">
+          <span id="modalTitlePrimary">Resume</span>
+          <span class="modal-title-accent" id="modalTitleAccent">module.</span>
+        </h2>
+        <p id="modalDescription">Your professional timeline, education, skills, and notable achievements will be added here when the portfolio content is ready.</p>
+        <div class="modal-placeholder">CONTENT MODULE RESERVED FOR NEXT PHASE</div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

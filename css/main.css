@@ -1,0 +1,54 @@
+/* --------------------------------------------------------------------------
+   1. Design tokens and global reset
+   -------------------------------------------------------------------------- */
+:root {
+  --color-background: #080b0d;
+  --color-surface-deep: #0d1315;
+  --color-text: #eef0e9;
+  --color-muted: #82908f;
+  --color-border: rgba(219, 231, 224, 0.13);
+  --color-accent: #d6ff32;
+  --color-warning: #ffad45;
+  --color-danger: #ff5c50;
+  --font-mono: "DM Mono", monospace;
+  --font-display: "Barlow Condensed", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 74% 8%, rgba(89, 112, 42, 0.13), transparent 26%),
+    radial-gradient(ellipse at 4% 105%, rgba(51, 112, 143, 0.12), transparent 32%),
+    var(--color-background);
+  color: var(--color-text);
+  font-family: Manrope, Arial, sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+button,
+a {
+  outline-offset: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   2. Shared typography utility
+   -------------------------------------------------------------------------- */
+.eyebrow {
+  color: var(--color-muted);
+  font: 400 10px var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}

@@ -1,54 +1,12 @@
-/* --------------------------------------------------------------------------
-   1. Design tokens and global reset
-   -------------------------------------------------------------------------- */
-:root {
-  --color-background: #080b0d;
-  --color-surface-deep: #0d1315;
-  --color-text: #eef0e9;
-  --color-muted: #82908f;
-  --color-border: rgba(219, 231, 224, 0.13);
-  --color-accent: #d6ff32;
-  --color-warning: #ffad45;
-  --color-danger: #ff5c50;
-  --font-mono: "DM Mono", monospace;
-  --font-display: "Barlow Condensed", sans-serif;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background: var(--color-background);
-}
-
-body {
-  min-height: 100vh;
-  margin: 0;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse at 74% 8%, rgba(89, 112, 42, 0.13), transparent 26%),
-    radial-gradient(ellipse at 4% 105%, rgba(51, 112, 143, 0.12), transparent 32%),
-    var(--color-background);
-  color: var(--color-text);
-  font-family: Manrope, Arial, sans-serif;
-}
-
-button {
-  font: inherit;
-}
-
-button,
-a {
-  outline-offset: 4px;
-}
-
-/* --------------------------------------------------------------------------
-   2. Shared typography utility
-   -------------------------------------------------------------------------- */
-.eyebrow {
-  color: var(--color-muted);
-  font: 400 10px var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
+:root { --ink:#f2f8ff; --muted:#91a5b8; --blue:#159bff; --cyan:#6cefff; --green:#4ce862; --navy:#010305; --panel:rgba(2,10,19,.92); --line:rgba(61,180,255,.47); --line-soft:rgba(68,174,255,.16); --display:"Barlow Condensed",sans-serif; --mono:"DM Mono",monospace; }
+* { box-sizing:border-box; }
+html { background:var(--navy); }
+body { min-width:320px; min-height:100vh; margin:0; overflow:hidden; background:radial-gradient(circle at 50% 43%,#061728 0,transparent 26%),linear-gradient(135deg,#010305,#02070c 62%,#000205); color:var(--ink); font-family:Manrope,Arial,sans-serif; }
+button,input { font:inherit; }
+button { color:inherit; }
+button:focus-visible,input:focus-visible { outline:2px solid var(--cyan); outline-offset:3px; }
+.system-label { margin:0; color:var(--blue); font:500 10px var(--mono); letter-spacing:.14em; text-transform:uppercase; }
+.online-dot { display:inline-block; width:7px; height:7px; background:var(--green); border-radius:50%; box-shadow:0 0 12px rgba(84,229,106,.7); }
+.primary-button { border:1px solid var(--blue); padding:14px 18px; background:linear-gradient(90deg,rgba(20,102,191,.75),rgba(27,181,255,.23)); color:var(--ink); cursor:pointer; font:600 14px var(--display); letter-spacing:.09em; text-transform:uppercase; }
+.primary-button span { color:var(--cyan); margin-left:12px; }
+kbd { border:1px solid var(--line); padding:2px 5px; color:var(--cyan); font:500 10px var(--mono); }

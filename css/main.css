@@ -1,7 +1,8 @@
 :root { --ink:#f2f8ff; --muted:#91a5b8; --blue:#159bff; --cyan:#6cefff; --green:#4ce862; --navy:#010305; --panel:rgba(2,10,19,.92); --line:rgba(61,180,255,.47); --line-soft:rgba(68,174,255,.16); --display:"Barlow Condensed",sans-serif; --mono:"DM Mono",monospace; }
 * { box-sizing:border-box; }
 html { background:var(--navy); }
-body { min-width:320px; min-height:100vh; margin:0; overflow:hidden; background:radial-gradient(circle at 50% 43%,#061728 0,transparent 26%),linear-gradient(135deg,#010305,#02070c 62%,#000205); color:var(--ink); font-family:Manrope,Arial,sans-serif; }
+html { min-width:320px; max-width:100%; overflow-x:clip; }
+body { min-width:320px; min-height:100vh; max-width:100%; margin:0; overflow:hidden; overflow-x:clip; background:radial-gradient(circle at 50% 43%,#061728 0,transparent 26%),linear-gradient(135deg,#010305,#02070c 62%,#000205); color:var(--ink); font-family:Manrope,Arial,sans-serif; }
 button,input { font:inherit; }
 button { color:inherit; }
 button:focus-visible,input:focus-visible { outline:2px solid var(--cyan); outline-offset:3px; }

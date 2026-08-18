@@ -11,7 +11,9 @@ const path = require("path");
 const sharp = require("sharp");
 
 const INPUT = path.join("assets", "models", "CatBot_Control_Room_FINAL.glb");
-const OUTPUT = path.join("assets", "models", "CatBot_Control_Room_WEB.glb");
+// A development-only candidate prevents this historical optimizer from
+// overwriting the validated WEB_LITE production asset.
+const OUTPUT = path.join("assets", "models", "CatBot_Control_Room_WEB_CANDIDATE.glb");
 const MAX_TEXTURE_SIZE = 2048;
 const IMAGE_QUALITY = 88;
 const HMI_IMAGE_QUALITY = 90;

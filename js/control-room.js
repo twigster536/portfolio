@@ -6,12 +6,10 @@ window.ControlRoom = (() => {
   const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js";
   const GLTF_LOADER_URL = "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/loaders/GLTFLoader.js";
   const ROOM_ENVIRONMENT_URL = "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/environments/RoomEnvironment.js";
-  const WEB_MODEL_URL = "assets/models/CatBot_Control_Room_WEB.glb";
   const WEB_LITE_MODEL_URL = "assets/models/CatBot_Control_Room_WEB_LITE.glb";
-  // WEB_LITE is the validated production asset. Keep WEB intact as a known-good
-  // runtime fallback while the lighter asset is monitored in development.
+  // WEB_LITE is the validated production asset. The editable Blender master is
+  // retained locally but deliberately excluded from the published site.
   const MODEL_URL = WEB_LITE_MODEL_URL;
-  const FALLBACK_MODEL_URL = WEB_MODEL_URL;
   const GRID_HASH = "#grid-guardian";
   const QUALITY_PRESETS = Object.freeze({
     HIGH: { pixelRatio: 1.5, anisotropy: 8, shadowMapSize: 1024, shadowRefreshInterval: .033, environmentIntensity: .34, environmentMapIntensity: .55, shadowCasters: /catbot|console|generator|transformer|switchgear|hvac|chair/i },
@@ -84,18 +82,55 @@ window.ControlRoom = (() => {
 
   class PlantState {
     constructor() { this.reset(); }
-    reset() { Object.assign(this, { generation: 842, demand: 791, frequency: 60, temperature: 24, generatorOnline: true, breakerClosed: true, coolingOnline: true, gridStatus: "STABLE", activeAlarm: "", masterPower: true, scenario: "", busy: false }); }
+    reset() { Object.assign(this, { generation: 842, demand: 791, frequency: 60, temperature: 24, generatorOnline: true, breakerClosed: true, coolingOnline: true, gridStatus: "STABLE", activeAlarm: "", masterPower: true, powerLevel: 1, scenario: "", busy: false, recoveryMode: "", recoveryElapsed: 0, recoveryDuration: 0, recoveryComplete: false }); }
     begin(type) {
       if (this.busy) return false;
       this.busy = true; this.scenario = type;
       if (type === "generator") Object.assign(this, { generatorOnline: false, generation: 320, frequency: 59.3, gridStatus: "WARNING", activeAlarm: "GENERATOR OFFLINE" });
       if (type === "breaker") Object.assign(this, { breakerClosed: false, gridStatus: "UNSTABLE", activeAlarm: "GRID BREAKER OPEN" });
       if (type === "cooling") Object.assign(this, { coolingOnline: false, temperature: 30, gridStatus: "WARNING", activeAlarm: "COOLING SYSTEM OFFLINE" });
-      if (type === "demand") Object.assign(this, { demand: 968, frequency: 59.2, gridStatus: "UNSTABLE", activeAlarm: "DEMAND EXCEEDS GENERATION" });
-      if (type === "master") Object.assign(this, { masterPower: false, generatorOnline: false, generation: 0, frequency: 0, gridStatus: "EMERGENCY", activeAlarm: "MASTER POWER OFF" });
+      if (type === "demand") Object.assign(this, { demand: 968, frequency: 59.2, gridStatus: "AI LOAD BALANCING", activeAlarm: "DEMAND SURGE" });
+      if (type === "master") Object.assign(this, { masterPower: false, powerLevel: 0, generatorOnline: false, generation: 0, frequency: 0, gridStatus: "EMERGENCY MODE", activeAlarm: "MASTER POWER OFF" });
       return true;
     }
-    update(delta) { if (this.scenario === "cooling" && !this.coolingOnline) this.temperature = Math.min(39, this.temperature + delta * 1.9); }
+    startSpecialRecovery(type) {
+      if (!this.busy || this.scenario !== type || (type !== "master" && type !== "demand")) return false;
+      this.recoveryMode = type;
+      this.recoveryElapsed = 0;
+      this.recoveryDuration = type === "master" ? 3.2 : 2.7;
+      this.recoveryComplete = false;
+      if (type === "master") Object.assign(this, { masterPower: true, powerLevel: .12, gridStatus: "SYSTEM RECOVERY", activeAlarm: "RESTORING BUS" });
+      if (type === "demand") Object.assign(this, { gridStatus: "AI LOAD BALANCING", activeAlarm: "OPTIMIZING DISTRIBUTION" });
+      console.info(`Plant ${type} recovery started.`, { duration: this.recoveryDuration });
+      return true;
+    }
+    isSpecialRecoveryComplete(type) { return this.recoveryComplete && this.scenario === type; }
+    update(delta) {
+      if (this.scenario === "cooling" && !this.coolingOnline) this.temperature = Math.min(39, this.temperature + delta * 1.9);
+      if (!this.recoveryMode || this.recoveryComplete) return;
+      this.recoveryElapsed = Math.min(this.recoveryDuration, this.recoveryElapsed + delta);
+      const progress = this.recoveryDuration ? this.recoveryElapsed / this.recoveryDuration : 1;
+      if (this.recoveryMode === "master") {
+        this.powerLevel = .12 + progress * .88;
+        this.generation = 842 * progress;
+        this.frequency = 60 * progress;
+        this.generatorOnline = progress > .56;
+        this.gridStatus = "SYSTEM RECOVERY";
+        this.activeAlarm = progress < .72 ? "RESTORING BUS" : "SYSTEM RECOVERY";
+      }
+      if (this.recoveryMode === "demand") {
+        this.demand = 968 + (791 - 968) * progress;
+        this.frequency = 59.2 + (.8 * progress);
+        this.gridStatus = progress < .46 ? "AI LOAD BALANCING" : "STABILIZING GRID";
+        this.activeAlarm = progress < .64 ? "OPTIMIZING DISTRIBUTION" : "DEMAND SURGE CONTAINED";
+      }
+      if (progress >= 1) {
+        this.recoveryComplete = true;
+        this.recoveryMode = "";
+        if (this.scenario === "master") Object.assign(this, { generation: 842, demand: 791, frequency: 60, generatorOnline: true, gridStatus: "SYSTEM RECOVERY", activeAlarm: "SYSTEM RECOVERY" });
+        if (this.scenario === "demand") Object.assign(this, { demand: 791, frequency: 60, gridStatus: "STABILIZING GRID", activeAlarm: "DEMAND BALANCED" });
+      }
+    }
     recover() { this.reset(); }
   }
 
@@ -198,6 +233,12 @@ window.ControlRoom = (() => {
         console.info(`CatBot ${this.plan.equipmentName || "GENERATOR"} repair completed.`);
         this.plan.repaired = true;
         this.plan.repair();
+        if (this.plan.specialConsole) {
+          this.state = "SPECIAL_SYSTEM_RECOVERY";
+          this.stateTime = 0;
+          console.info(`CatBot ${this.plan.type} special recovery is waiting for plant stabilization.`);
+          return;
+        }
         if (this.plan.generalizedRoute) this.startGenericReturnRotation();
         else this.startReturnRotation();
       };
@@ -342,6 +383,13 @@ window.ControlRoom = (() => {
       next.y = this.travelY;
       this.setRootWorldPosition(next);
       return step === distance;
+    }
+    isAtMarker(marker) {
+      if (!marker) return false;
+      const current = this.rootWorldPosition();
+      const destination = this.markerWorldPosition(marker);
+      destination.y = current.y;
+      return current.distanceTo(destination) <= this.arrivalTolerance * 1.5;
     }
     segmentClearsPlanar(start, end, obstacleBoxes, clearance) {
       const distance = start.distanceTo(end);
@@ -494,9 +542,82 @@ window.ControlRoom = (() => {
       this.state = "RETURNING_HOME";
       this.stateTime = 0;
     }
-    beginRecovery(type, navigationTarget, repair) {
+    startConsoleRepair() {
+      this.stopContinuousWalk("MAIN CONSOLE");
+      console.info(`CatBot ${this.plan.type} console repair started:`, this.repairClip.name);
+      this.repairAction.setLoop(this.THREE.LoopOnce, 1);
+      this.repairAction.clampWhenFinished = true;
+      this.fadeTo(this.repairAction);
+      this.state = "REPAIRING";
+      this.stateTime = 0;
+    }
+    completeConsoleRecovery() {
+      const { type, complete } = this.plan;
+      this.group.position.copy(this.homeLocalPosition);
+      this.group.quaternion.copy(this.homeLocalQuaternion);
+      this.group.updateMatrixWorld(true);
+      complete?.();
+      this.state = "IDLE";
+      this.stateTime = 0;
+      this.plan = null;
+      this.restoreIdle();
+      console.info(`CatBot ${type} console recovery complete; HOME idle restored.`);
+    }
+    updateConsoleRecovery(delta) {
+      if (this.state === "SPECIAL_ALERT") {
+        if (this.stateTime > this.plan.alertDuration) {
+          if (this.isAtMarker(this.plan.homeTarget)) this.startConsoleRepair();
+          else {
+            console.info(`CatBot ${this.plan.type} is away from HOME; returning to the main console before repair.`);
+            this.stopCurrentAction();
+            this.state = "ROTATING_TO_CONSOLE_HOME";
+            this.stateTime = 0;
+          }
+        }
+        return;
+      }
+      if (this.state === "ROTATING_TO_CONSOLE_HOME") {
+        if (this.rotateTowardWorldPosition(this.markerWorldPosition(this.plan.homeTarget), delta)) {
+          this.startContinuousWalk(`${this.plan.type} to MAIN CONSOLE`);
+          this.state = "WALKING_TO_CONSOLE_HOME";
+          this.stateTime = 0;
+        }
+        return;
+      }
+      if (this.state === "WALKING_TO_CONSOLE_HOME") {
+        this.rotateTowardWorldPosition(this.markerWorldPosition(this.plan.homeTarget), delta);
+        if (this.moveTowardMarker(this.plan.homeTarget, delta)) {
+          console.info("CatBot reached the main console HOME marker.");
+          this.startConsoleRepair();
+        }
+        return;
+      }
+      if (this.state === "SPECIAL_SYSTEM_RECOVERY" && this.plan.isRecoveryComplete?.()) {
+        console.info(`CatBot ${this.plan.type} plant stabilization complete.`);
+        this.stopCurrentAction();
+        this.state = "RESTORING_CONSOLE_HOME_ORIENTATION";
+        this.stateTime = 0;
+        return;
+      }
+      if (this.state === "RESTORING_CONSOLE_HOME_ORIENTATION" && this.rotateToHomeOrientation(delta)) this.completeConsoleRecovery();
+    }
+    beginConsoleRecovery(type, navigationTarget, repair, complete, isRecoveryComplete) {
+      const homeTarget = this.navigationTargets.NAV_CatBot_HOME || navigationTarget;
+      if (!homeTarget || !this.repairAction) {
+        console.warn(`CatBot ${type} console recovery cannot start: HOME marker or repair animation is unavailable.`);
+        return false;
+      }
+      this.travelY = this.rootWorldPosition().y;
+      this.plan = { type, equipmentName: "MAIN CONSOLE", homeTarget, repair, complete, isRecoveryComplete, repaired: false, specialConsole: true, alertDuration: type === "master" ? .92 : .62 };
+      this.state = "SPECIAL_ALERT";
+      this.stateTime = 0;
+      console.info(`CatBot ${type} special fault started at the main console.`, { atHome: this.isAtMarker(homeTarget), home: this.markerWorldPosition(homeTarget).toArray() });
+      return true;
+    }
+    beginRecovery(type, navigationTarget, repair, options = {}) {
       if (this.isBusy()) return false;
       this.irritation = Math.min(8, this.irritation + 1);
+      if (type === "master" || type === "demand") return this.beginConsoleRecovery(type, navigationTarget, repair, options.complete, options.isRecoveryComplete);
       const routeDefinition = this.getRouteDefinition(type);
       if (routeDefinition) {
         this.travelY = this.rootWorldPosition().y;
@@ -615,6 +736,7 @@ window.ControlRoom = (() => {
       if (!this.plan) return;
       this.stateTime += delta;
       if (this.plan.simulationOnly) { this.updateSimulationRecovery(); return; }
+      if (this.plan.specialConsole) { this.updateConsoleRecovery(delta); return; }
       if (this.plan.generalizedRoute) {
         if (this.state === "ROTATING_TO_OUTBOUND_WAYPOINT") {
           const waypoint = this.plan.outboundWaypoints[this.plan.outboundIndex];
@@ -792,6 +914,7 @@ window.ControlRoom = (() => {
     prepareBlenderPresentation() {
       const T = this.T;
       const anisotropy = Math.min(this.renderer.capabilities.getMaxAnisotropy(), this.quality.anisotropy);
+      this.emissiveMaterials ||= [];
       this.blenderScene.traverse((node) => {
         if (!node.isMesh) return;
         const shadowOwnerNames = [];
@@ -807,7 +930,12 @@ window.ControlRoom = (() => {
         const materials = Array.isArray(node.material) ? node.material : [node.material];
         materials.filter(Boolean).forEach((material) => {
           if ("envMapIntensity" in material) material.envMapIntensity = Math.min(Math.max(material.envMapIntensity || 0, this.isMobile ? .18 : .28), this.quality.environmentMapIntensity);
-          if (material.emissive && material.emissiveIntensity > 0) material.emissiveIntensity = Math.max(material.emissiveIntensity, .72);
+          if (material.emissive && material.emissiveIntensity > 0) {
+            const baseEmissive = material.userData.crBaseEmissiveIntensity ?? Math.max(material.emissiveIntensity, .72);
+            material.userData.crBaseEmissiveIntensity = baseEmissive;
+            material.emissiveIntensity = baseEmissive;
+            if (!this.emissiveMaterials.some((entry) => entry.material === material)) this.emissiveMaterials.push({ material, base: baseEmissive, isHmi: /hmi|screen|monitor|display|console|panel/i.test(shadowOwner) });
+          }
           const textures = new Set([material.map, material.normalMap, material.roughnessMap, material.metalnessMap, material.aoMap, material.emissiveMap].filter(Boolean));
           textures.forEach((texture) => { texture.anisotropy = anisotropy; texture.minFilter = T.LinearMipmapLinearFilter; texture.magFilter = T.LinearFilter; texture.needsUpdate = true; });
           material.needsUpdate = true;
@@ -882,23 +1010,16 @@ window.ControlRoom = (() => {
     async loadBlenderControlRoom() {
       const loader = new this.GLTFLoader();
       let gltf;
-      let loadedModelUrl = MODEL_URL;
       try {
-        gltf = await loader.loadAsync(loadedModelUrl, (event) => this.onProgress?.(event));
+        gltf = await loader.loadAsync(MODEL_URL, (event) => this.onProgress?.(event));
       } catch (error) {
-        console.warn("Unable to load the optimized CatBot control-room GLB; trying the known-good WEB fallback.", { modelUrl: loadedModelUrl, error });
-        loadedModelUrl = FALLBACK_MODEL_URL;
-        try {
-          gltf = await loader.loadAsync(loadedModelUrl, (event) => this.onProgress?.(event));
-        } catch (fallbackError) {
-          console.error("Unable to load the CatBot control-room GLB or its fallback.", { modelUrl: loadedModelUrl, error: fallbackError });
-          throw fallbackError;
-        }
+        console.error("Unable to load the production WEB_LITE CatBot control-room GLB.", { modelUrl: MODEL_URL, error });
+        throw error;
       }
       this.blenderScene = gltf.scene;
       this.scene.add(this.blenderScene);
       this.blenderScene.updateMatrixWorld(true);
-      this.inspectBlenderScene(gltf, loadedModelUrl);
+      this.inspectBlenderScene(gltf, MODEL_URL);
       this.frameBlenderScene();
       this.robot = new CatBotController(this.T, this.inspection.mixerRoot, gltf.animations, this.navigationTargets, this.inspection);
     }
@@ -983,22 +1104,42 @@ window.ControlRoom = (() => {
     triggerFault(type) {
       if (this.robot?.isBusy?.()) { console.info("CatBot is already handling a route; fault request ignored:", type); return; }
       if (!this.plant.begin(type)) return;
-      this.sound.play(type === "master" ? "power" : "alarm");
+      if (type === "master") { this.sound.play("power"); this.sound.play("alarm"); }
+      else this.sound.play("alarm");
       const navigationTarget = this.navigationTargets[navigationTargetNames[type]];
-      this.robot?.beginRecovery(type, navigationTarget, () => { this.plant.recover(); this.sound.play("repair"); });
+      const specialFault = type === "master" || type === "demand";
+      const started = this.robot?.beginRecovery(
+        type,
+        navigationTarget,
+        () => {
+          if (specialFault) this.plant.startSpecialRecovery(type);
+          else this.plant.recover();
+          this.sound.play("repair");
+        },
+        specialFault ? {
+          isRecoveryComplete: () => this.plant.isSpecialRecoveryComplete(type),
+          complete: () => this.plant.recover()
+        } : undefined
+      );
+      if (!started) {
+        console.warn(`GRID GUARDIAN ${type} fault could not start its CatBot flow; restoring the plant.`);
+        this.plant.recover();
+      }
       this.applyPlantVisuals();
-      updateHud(this.plant, this.robot, true);
+      updateHud(this.plant, this.robot, Boolean(started));
     }
     applyPlantVisuals() {
-      const s = this.plant; const roomIsPowered = s.masterPower;
-      this.keyLight.intensity = roomIsPowered ? 6.8 : .45;
-      this.consoleKeyLight.intensity = roomIsPowered ? (this.isMobile ? 6.5 : 11) : .35;
-      this.coolFillLight.intensity = roomIsPowered ? (this.isMobile ? 1.25 : 2.2) : .12;
-      this.rimLight.intensity = roomIsPowered ? (this.isMobile ? 1.5 : 3.1) : .22;
-      this.catBotLight.intensity = roomIsPowered ? (this.isMobile ? .55 : 1.1) : .08;
-      this.hemisphereLight.intensity = roomIsPowered ? (this.isMobile ? .28 : .38) : .1;
-      this.emergencyLight.intensity = roomIsPowered ? 0 : 16;
-      this.cityLights?.forEach((light, index) => { light.intensity = roomIsPowered && s.breakerClosed ? .35 : (roomIsPowered && index % 3 ? .16 : 0); });
+      const s = this.plant; const roomIsPowered = s.masterPower; const powerLevel = roomIsPowered ? Math.max(0, Math.min(1, s.powerLevel ?? 1)) : 0;
+      const roomLight = roomIsPowered ? .12 + powerLevel * .88 : 0;
+      this.keyLight.intensity = .45 + (6.8 - .45) * roomLight;
+      this.consoleKeyLight.intensity = .35 + ((this.isMobile ? 6.5 : 11) - .35) * roomLight;
+      this.coolFillLight.intensity = .12 + ((this.isMobile ? 1.25 : 2.2) - .12) * roomLight;
+      this.rimLight.intensity = .22 + ((this.isMobile ? 1.5 : 3.1) - .22) * roomLight;
+      this.catBotLight.intensity = .08 + ((this.isMobile ? .55 : 1.1) - .08) * roomLight;
+      this.hemisphereLight.intensity = .1 + ((this.isMobile ? .28 : .38) - .1) * roomLight;
+      this.emergencyLight.intensity = s.scenario === "master" && s.busy ? 16 * (1 - powerLevel) : 0;
+      this.emissiveMaterials?.forEach(({ material, base, isHmi }) => { material.emissiveIntensity = base * (roomIsPowered ? (.08 + powerLevel * .92) : (isHmi ? .035 : .06)); });
+      this.cityLights?.forEach((light, index) => { const normal = s.breakerClosed ? .35 : (index % 3 ? .16 : 0); light.intensity = normal * roomLight; });
       if (this.breakerLever) this.breakerLever.rotation.z = s.breakerClosed ? 0 : -.95;
     }
     bindInput() { const canvas = this.renderer.domElement; const endDrag = () => { this.drag = null; }; canvas.addEventListener("pointerdown", (event) => { canvas.setPointerCapture(event.pointerId); this.drag = { x: event.clientX, y: event.clientY, moved: false }; }); canvas.addEventListener("pointermove", (event) => { if (this.drag) { const dx = event.clientX - this.drag.x; const dy = event.clientY - this.drag.y; if (Math.abs(dx) + Math.abs(dy) > 4) this.drag.moved = true; this.yaw = Math.max(-this.maxYaw, Math.min(this.maxYaw, this.yaw - dx * .0065)); this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch - dy * .0035)); this.drag.x = event.clientX; this.drag.y = event.clientY; } else this.setHover(event); }); canvas.addEventListener("pointerup", (event) => { if (!this.drag?.moved) { const hit = this.pick(event); if (hit) this.triggerFault(hit.userData.action); } endDrag(); }); canvas.addEventListener("pointercancel", endDrag); canvas.addEventListener("pointerleave", () => { if (!this.drag) this.clearHover(); }); canvas.addEventListener("wheel", (event) => event.preventDefault(), { passive: false }); }

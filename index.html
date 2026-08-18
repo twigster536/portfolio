@@ -12,9 +12,14 @@
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/hmi.css" />
   <link rel="stylesheet" href="css/responsive.css" />
+  <link rel="stylesheet" href="css/control-room.css?v=scroll-lock-1" />
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js" } }
+  </script>
   <script src="js/hmi.js" defer></script>
   <script src="js/memory-wall.js" defer></script>
   <script src="js/profile.js" defer></script>
+  <script src="js/control-room.js?v=web-lite-1" defer></script>
   <script src="js/navigation.js" defer></script>
   <script src="js/main.js" defer></script>
 </head>
@@ -67,7 +72,7 @@
             <button class="radial-app" type="button" data-section="profile" data-index="0" aria-pressed="true"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="19" r="10"/><path d="M14 54v-6c0-10 8-18 18-18s18 8 18 18v6z"/></svg></span><span>Profile</span></button>
             <button class="radial-app" type="button" data-section="projects" data-index="1" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M6 20h21l6 7h25v25H6z"/><path d="M6 20v-6h21l6 7"/></svg></span><span>Projects</span></button>
             <button class="radial-app" type="button" data-section="plc" data-index="2" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="5" y="14" width="54" height="36" rx="2"/><path d="M12 22h10m4 0h10m4 0h10M12 32h6m4 0h6m4 0h6m4 0h6M12 42h4m4 0h4m4 0h4m4 0h4m4 0h4"/></svg></span><span>PLC</span></button>
-            <button class="radial-app" type="button" data-section="games" data-index="3" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="6" y="12" width="52" height="37" rx="2"/><path d="M14 39V26m8 13v-8m8 8V21m9 18v-5m8 5V24M24 54h16"/></svg></span><span>Games</span></button>
+            <button class="radial-app" type="button" data-section="entertainment" data-index="3" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="6" y="12" width="52" height="37" rx="2"/><path d="M14 39V26m8 13v-8m8 8V21m9 18v-5m8 5V24M24 54h16"/></svg></span><span>Entertainment</span></button>
             <button class="radial-app" type="button" data-section="motion" data-index="4" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="13"/><circle cx="32" cy="32" r="4"/><path d="M32 7v10m0 30v10M7 32h10m30 0h10M14 14l7 7m22 22l7 7M50 14l-7 7M21 43l-7 7"/></svg></span><span>Motion</span></button>
             <button class="radial-app" type="button" data-section="memory" data-index="5" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="9" y="10" width="46" height="38" rx="4"/><path d="M18 19h28M18 28h20M18 37h14M22 54h20"/><circle cx="45" cy="38" r="5"/></svg></span><span>Memory Wall</span></button>
             <button class="radial-app" type="button" data-section="certificates" data-index="6" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="9" y="8" width="42" height="48" rx="2"/><path d="M17 19h26m-26 8h20m-20 8h15"/><circle cx="43" cy="42" r="8"/><path d="m39 48-2 9 6-3 5 3-2-9"/></svg></span><span>Certificates</span></button>
@@ -97,6 +102,10 @@
       <button class="power-button" type="button" data-action="power" aria-label="Power down interface"><span class="nav-glyph">⏻</span><span>Power</span></button>
     </nav>
   </div>
+
+  <section class="control-room" id="controlRoom" aria-hidden="true" aria-label="Grid Guardian Control Room">
+    <div class="control-room-shell" id="controlRoomShell"></div>
+  </section>
 
   <div class="modal" id="detailsModal" aria-hidden="true" aria-labelledby="modalTitle" aria-modal="true" role="dialog">
     <section class="modal-window" id="detailsWindow"><header class="panel-bar"><span id="modalLabel">PROJECT RECORD</span><button class="close-button" id="modalClose" type="button" aria-label="Close project detail">×</button></header><div class="modal-content" id="modalContent"><h2 id="modalTitle">Project detail</h2></div></section>

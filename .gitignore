@@ -1,0 +1,3 @@
+# Keep the editable Blender master out of normal GitHub commits and Pages deploys.
+# WEB_LITE and WEB remain deployable because the runtime loads them directly.
+assets/models/CatBot_Control_Room_FINAL.glb

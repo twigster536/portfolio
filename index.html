@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/hmi.css" />
   <link rel="stylesheet" href="css/responsive.css" />
   <link rel="stylesheet" href="css/control-room.css?v=scroll-lock-1" />
+  <link rel="stylesheet" href="css/plc-timeline.css" />
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js" } }
   </script>
@@ -20,6 +21,7 @@
   <script src="js/memory-wall.js" defer></script>
   <script src="js/profile.js" defer></script>
   <script src="js/control-room.js?v=web-lite-1" defer></script>
+  <script src="js/plc-timeline.js" defer></script>
   <script src="js/navigation.js" defer></script>
   <script src="js/main.js" defer></script>
 </head>
@@ -106,6 +108,8 @@
   <section class="control-room" id="controlRoom" aria-hidden="true" aria-label="Grid Guardian Control Room">
     <div class="control-room-shell" id="controlRoomShell"></div>
   </section>
+
+  <section class="plc-timeline" id="plcTimeline" aria-hidden="true" aria-label="PLC and automation career timeline"></section>
 
   <div class="modal" id="detailsModal" aria-hidden="true" aria-labelledby="modalTitle" aria-modal="true" role="dialog">
     <section class="modal-window" id="detailsWindow"><header class="panel-bar"><span id="modalLabel">PROJECT RECORD</span><button class="close-button" id="modalClose" type="button" aria-label="Close project detail">×</button></header><div class="modal-content" id="modalContent"><h2 id="modalTitle">Project detail</h2></div></section>

@@ -26,28 +26,21 @@ window.PlcTimeline = (() => {
    * only the low-contrast environmental layer sitting behind the artwork and HUD.
    * Keeping it here avoids adding another rendering engine to the portfolio.
    */
-  function createSpaceBackground(canvas, shell) {
+  function createSpaceBackground(canvas) {
     const context = canvas?.getContext?.("2d", { alpha: true });
-    if (!context || !shell) return { setTimelineOffset() {}, dispose() {} };
+    if (!context) return { dispose() {} };
 
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
     const colors = ["#006DFF", "#009DFF", "#00D9FF", "#75F3FF"];
     const state = {
       active: true,
-      frame: 0,
       width: 1,
       height: 1,
       ratio: 1,
-      timelineOffset: 0,
-      pointer: { x: 0, y: 0, targetX: 0, targetY: 0 },
       layers: [],
       fragments: [],
-      nodes: [],
-      streaks: []
+      nodes: []
     };
 
-    const wrap = (value, limit) => ((value % limit) + limit) % limit;
     const random = (min, max) => min + Math.random() * (max - min);
     const isCompact = () => innerWidth <= 820;
 
@@ -57,8 +50,6 @@ window.PlcTimeline = (() => {
         y: Math.random(),
         radius: random(options.radius[0], options.radius[1]),
         opacity: random(options.opacity[0], options.opacity[1]),
-        speedX: random(options.speedX[0], options.speedX[1]),
-        speedY: random(options.speedY[0], options.speedY[1]),
         color: colors[Math.floor(Math.random() * colors.length)],
         phase: random(0, Math.PI * 2)
       }));
@@ -67,9 +58,9 @@ window.PlcTimeline = (() => {
     function buildScene() {
       const compact = isCompact();
       state.layers = [
-        { particles: makeParticles(compact ? 64 : 170, { radius: [.35, .75], opacity: [.06, .18], speedX: [-.35, .35], speedY: [-.48, .08] }), parallax: .02, mouse: .18, glow: false },
-        { particles: makeParticles(compact ? 31 : 78, { radius: [.48, 1.05], opacity: [.09, .27], speedX: [-.65, .65], speedY: [-.85, -.12] }), parallax: .055, mouse: .52, glow: false },
-        { particles: makeParticles(compact ? 10 : 25, { radius: [.8, 1.5], opacity: [.16, .42], speedX: [-1.15, 1.15], speedY: [-1.45, -.32] }), parallax: .10, mouse: 1, glow: true }
+        { particles: makeParticles(compact ? 64 : 170, { radius: [.35, .75], opacity: [.07, .20] }), glow: false },
+        { particles: makeParticles(compact ? 31 : 78, { radius: [.48, 1.05], opacity: [.10, .29] }), glow: false },
+        { particles: makeParticles(compact ? 10 : 25, { radius: [.8, 1.5], opacity: [.16, .42] }), glow: true }
       ];
       state.fragments = Array.from({ length: compact ? 12 : 32 }, () => ({
         x: Math.random(), y: Math.random(), vertical: Math.random() > .56,
@@ -77,9 +68,6 @@ window.PlcTimeline = (() => {
       }));
       state.nodes = Array.from({ length: compact ? 7 : 18 }, () => ({
         x: Math.random(), y: Math.random(), opacity: random(.035, .13), phase: random(0, Math.PI * 2), color: colors[Math.floor(Math.random() * colors.length)]
-      }));
-      state.streaks = Array.from({ length: compact ? 1 : 3 }, () => ({
-        x: random(.08, .9), y: random(.12, .84), length: random(20, 56), driftX: random(.03, .12), driftY: random(-.045, -.012), duration: random(.5, .9), interval: random(12, 21), offset: random(0, 18), opacity: random(.13, .23), color: colors[Math.floor(Math.random() * colors.length)]
       }));
     }
 
@@ -92,18 +80,18 @@ window.PlcTimeline = (() => {
       canvas.height = Math.round(state.height * state.ratio);
       context.setTransform(state.ratio, 0, 0, state.ratio, 0, 0);
       buildScene();
-      draw(performance.now());
+      draw();
     }
 
-    function drawDetails(seconds) {
+    function drawDetails() {
       state.fragments.forEach((fragment) => {
-        const brightness = .52 + Math.sin(seconds * .18 + fragment.phase) * .48;
+        const brightness = .72 + Math.sin(fragment.phase) * .18;
         context.globalAlpha = fragment.opacity * brightness;
         context.strokeStyle = fragment.color;
         context.lineWidth = 1;
         context.beginPath();
-        const x = fragment.x * state.width + state.pointer.x * .1;
-        const y = fragment.y * state.height + state.timelineOffset * .008 + state.pointer.y * .1;
+        const x = fragment.x * state.width;
+        const y = fragment.y * state.height;
         if (fragment.vertical) {
           context.moveTo(x, y);
           context.lineTo(x, y + fragment.length);
@@ -114,17 +102,17 @@ window.PlcTimeline = (() => {
         context.stroke();
       });
       state.nodes.forEach((node) => {
-        context.globalAlpha = node.opacity * (.52 + Math.sin(seconds * .23 + node.phase) * .48);
+        context.globalAlpha = node.opacity * (.72 + Math.sin(node.phase) * .18);
         context.fillStyle = node.color;
-        context.fillRect(node.x * state.width, node.y * state.height + state.timelineOffset * .008, 1.25, 1.25);
+        context.fillRect(node.x * state.width, node.y * state.height, 1.25, 1.25);
       });
     }
 
-    function drawLayer(layer, seconds) {
+    function drawLayer(layer) {
       layer.particles.forEach((particle) => {
-        const x = wrap(particle.x * state.width + seconds * particle.speedX + state.pointer.x * layer.mouse, state.width + 8) - 4;
-        const y = wrap(particle.y * state.height + seconds * particle.speedY + state.timelineOffset * layer.parallax + state.pointer.y * layer.mouse, state.height + 8) - 4;
-        context.globalAlpha = particle.opacity * (.76 + Math.sin(seconds * .36 + particle.phase) * .24);
+        const x = particle.x * state.width;
+        const y = particle.y * state.height;
+        context.globalAlpha = particle.opacity * (.82 + Math.sin(particle.phase) * .16);
         context.fillStyle = particle.color;
         if (layer.glow) {
           context.shadowColor = particle.color;
@@ -137,91 +125,22 @@ window.PlcTimeline = (() => {
       });
     }
 
-    function drawStreaks(seconds) {
-      state.streaks.forEach((streak) => {
-        const cycle = (seconds + streak.offset) % streak.interval;
-        if (cycle > streak.duration) return;
-        const progress = cycle / streak.duration;
-        const alpha = Math.sin(progress * Math.PI) * streak.opacity;
-        const x = (streak.x + progress * streak.driftX) * state.width;
-        const y = (streak.y + progress * streak.driftY) * state.height + state.timelineOffset * .04;
-        context.globalAlpha = alpha;
-        context.strokeStyle = streak.color;
-        context.lineWidth = 1;
-        context.shadowColor = streak.color;
-        context.shadowBlur = 6;
-        context.beginPath();
-        context.moveTo(x - streak.length, y + streak.length * .22);
-        context.lineTo(x, y);
-        context.stroke();
-        context.shadowBlur = 0;
-      });
-    }
-
-    function draw(time) {
+    function draw() {
       if (!state.active) return;
-      const seconds = time * .001;
       context.clearRect(0, 0, state.width, state.height);
-      drawDetails(seconds);
-      state.layers.forEach((layer) => drawLayer(layer, seconds));
-      drawStreaks(seconds);
+      drawDetails();
+      state.layers.forEach((layer) => drawLayer(layer));
       context.globalAlpha = 1;
-    }
-
-    function schedule() {
-      if (reducedMotion || !state.active || document.hidden || state.frame) return;
-      state.frame = requestAnimationFrame((time) => {
-        state.frame = 0;
-        state.pointer.x += (state.pointer.targetX - state.pointer.x) * .055;
-        state.pointer.y += (state.pointer.targetY - state.pointer.y) * .055;
-        draw(time);
-        schedule();
-      });
-    }
-
-    function onPointerMove(event) {
-      const bounds = shell.getBoundingClientRect();
-      state.pointer.targetX = clamp(((event.clientX - bounds.left) / Math.max(1, bounds.width) - .5) * 10, -5, 5);
-      state.pointer.targetY = clamp(((event.clientY - bounds.top) / Math.max(1, bounds.height) - .5) * 10, -5, 5);
-    }
-
-    function onPointerLeave() {
-      state.pointer.targetX = 0;
-      state.pointer.targetY = 0;
-    }
-
-    function onVisibilityChange() {
-      if (document.hidden) {
-        cancelAnimationFrame(state.frame);
-        state.frame = 0;
-      } else {
-        draw(performance.now());
-        schedule();
-      }
     }
 
     buildScene();
     window.addEventListener("resize", resize, { passive: true });
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    if (finePointer && !reducedMotion) {
-      shell.addEventListener("pointermove", onPointerMove, { passive: true });
-      shell.addEventListener("pointerleave", onPointerLeave, { passive: true });
-    }
     resize();
-    schedule();
 
     return {
-      setTimelineOffset(offset) {
-        state.timelineOffset = Number.isFinite(offset) ? offset : 0;
-        if (reducedMotion) draw(performance.now());
-      },
       dispose() {
         state.active = false;
-        cancelAnimationFrame(state.frame);
         window.removeEventListener("resize", resize);
-        document.removeEventListener("visibilitychange", onVisibilityChange);
-        shell.removeEventListener("pointermove", onPointerMove);
-        shell.removeEventListener("pointerleave", onPointerLeave);
       }
     };
   }
@@ -264,7 +183,6 @@ window.PlcTimeline = (() => {
 
     const artworkY = -(state.progress * travel);
     state.artwork.style.setProperty("--plc6-art-y", `${artworkY.toFixed(1)}px`);
-    state.space?.setTimelineOffset(artworkY);
     state.shell.dataset.stage = stage.key;
     state.milestones.forEach((node, index) => {
       const active = index === stage.right;
@@ -374,7 +292,7 @@ window.PlcTimeline = (() => {
     document.body.classList.add("is-plc-timeline-active");
     document.documentElement.classList.add("is-plc-timeline-active");
     openState = { active: true, frame: 0, progress: START_PROGRESS, targetProgress: START_PROGRESS, touchY: null, ...ui };
-    openState.space = createSpaceBackground(ui.spaceCanvas, ui.shell);
+    openState.space = createSpaceBackground(ui.spaceCanvas);
     openState.onWheel = (event) => { event.preventDefault(); travel(openState, event.deltaY / Math.max(1200, innerHeight * 5.4)); };
     openState.onTouchStart = (event) => { openState.touchY = event.touches[0]?.clientY ?? null; };
     openState.onTouchMove = (event) => { const nextY = event.touches[0]?.clientY; if (openState.touchY == null || nextY == null) return; event.preventDefault(); travel(openState, (openState.touchY - nextY) / Math.max(900, innerHeight * 3.6)); openState.touchY = nextY; };

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="DISHNU — PLC Automation Engineer portfolio and automation control interface." />
+  <title>DISHNU | Automation Control</title>
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/hmi.css" />
+  <link rel="stylesheet" href="css/motion-solver.css" />
+  <link rel="stylesheet" href="css/engineering-lab.css" />
+  <link rel="stylesheet" href="css/projects.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+  <link rel="stylesheet" href="css/bas.css" />
+  <link rel="stylesheet" href="css/plc-timeline.css" />
+  <link rel="stylesheet" href="css/ai-hvac-simulation.css" />
+  <script src="js/hmi.js" defer></script>
+    <script src="js/memory-wall-api.js" defer></script>
+    <script src="js/memory-wall.js" defer></script>
+  <script src="js/profile.js" defer></script>
+  <script src="js/bas.js" defer></script>
+  <script src="js/plc-timeline.js" defer></script>
+  <script src="js/motion-solver.js" defer></script>
+  <script src="js/engineering-lab.js" defer></script>
+  <script src="js/ai-hvac-simulation.js" defer></script>
+  <script src="js/projects.js" defer></script>
+  <script src="js/navigation.js" defer></script>
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <div class="technical-grid" aria-hidden="true"></div>
+
+  <section class="boot-screen" id="bootScreen" aria-live="polite" aria-label="Automation Control booting">
+    <div class="boot-content">
+      <p class="system-label">AUTOMATION CONTROL / BOOT SEQUENCE</p>
+      <div class="boot-wordmark">DISHNU<span>//</span></div>
+      <div class="boot-track" aria-hidden="true"><div class="boot-progress" id="bootProgress"></div></div>
+      <div class="boot-row"><span id="bootStatus">INITIALIZING INTERFACE</span><span id="bootPercent">00%</span></div>
+      <p class="boot-log" id="bootLog">&gt; checking interface protocol&hellip;</p>
+    </div>
+  </section>
+
+  <section class="power-screen" id="powerScreen" aria-hidden="true" aria-label="System powered down">
+    <div>
+      <p class="system-label">AUTOMATION CONTROL / STANDBY</p>
+      <h1>SYSTEM<br /><span>OFFLINE</span></h1>
+      <p>The interface has been placed in standby.</p>
+      <button class="primary-button" id="powerRestartButton" type="button">RESTART INTERFACE <span aria-hidden="true">↗</span></button>
+    </div>
+  </section>
+
+  <div class="portfolio-app" id="portfolioApp" aria-hidden="true">
+    <header class="site-header">
+      <p class="system-label">AUTOMATION CONTROL</p>
+      <div class="identity"><h1>DISHNU</h1><p>PLC AUTOMATION ENGINEER</p></div>
+      <div class="header-status"><span class="online-dot" aria-hidden="true"></span><span>SYSTEM ONLINE</span><time id="clock" aria-label="Current local time">--:--</time></div>
+    </header>
+
+    <main class="control-layout">
+      <aside class="profile-panel panel-shell" aria-labelledby="profileHeading">
+        <div class="panel-bar"><span>OPERATOR PROFILE</span><span class="panel-code">ID_01</span></div>
+        <figure class="profile-photo"><img src="assets/images/dishnu-profile.png" alt="Portrait of Dishnu Unnikrishnan" width="1080" height="1440" /></figure>
+        <div class="profile-heading"><span class="online-tag"><i></i> ENGINEER ONLINE</span><h2 id="profileHeading">DISHNU</h2><p>PLC AUTOMATION ENGINEER</p></div>
+        <dl class="profile-data">
+          <div><dt>EXPERIENCE</dt><dd>MAR 2023 — PRESENT</dd></div>
+          <div><dt>SPECIALIZATION</dt><dd>PLC / HMI / MOTOR CONTROL</dd></div>
+          <div><dt>LOCATION</dt><dd>KITCHENER, ON</dd></div>
+        </dl>
+        <p class="placeholder-note">Profile details are sourced from the supplied résumé.</p>
+      </aside>
+
+      <section class="control-center" aria-labelledby="launcherHeading">
+        <div class="center-heading"><p class="system-label">APPLICATION LAUNCHER</p><h2 id="launcherHeading">SELECT A <span>MODULE</span></h2></div>
+        <div class="radial-stage" id="radialStage">
+          <div class="radial-orbit" id="radialOrbit" aria-label="Portfolio application launcher">
+            <button class="radial-app" type="button" data-section="profile" data-index="0" aria-pressed="true"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="19" r="10"/><path d="M14 54v-6c0-10 8-18 18-18s18 8 18 18v6z"/></svg></span><span>Profile</span></button>
+            <button class="radial-app" type="button" data-section="projects" data-index="1" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M6 20h21l6 7h25v25H6z"/><path d="M6 20v-6h21l6 7"/></svg></span><span>Projects</span></button>
+            <button class="radial-app" type="button" data-section="plc" data-index="2" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="5" y="14" width="54" height="36" rx="2"/><path d="M12 22h10m4 0h10m4 0h10M12 32h6m4 0h6m4 0h6m4 0h6M12 42h4m4 0h4m4 0h4m4 0h4m4 0h4"/></svg></span><span>TIMELINE</span></button>
+            <button class="radial-app" type="button" data-section="bas" data-index="3" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="6" y="12" width="52" height="37" rx="2"/><path d="M14 39V26m8 13v-8m8 8V21m9 18v-5m8 5V24M24 54h16"/></svg></span><span>BAS</span></button>
+            <button class="radial-app" type="button" data-section="motion" data-index="4" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="13"/><circle cx="32" cy="32" r="4"/><path d="M32 7v10m0 30v10M7 32h10m30 0h10M14 14l7 7m22 22l7 7M50 14l-7 7M21 43l-7 7"/></svg></span><span>LAB</span></button>
+            <button class="radial-app" type="button" data-section="memory" data-index="5" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="9" y="10" width="46" height="38" rx="4"/><path d="M18 19h28M18 28h20M18 37h14M22 54h20"/><circle cx="45" cy="38" r="5"/></svg></span><span>Memory Wall</span></button>
+            <button class="radial-app" type="button" data-section="certificates" data-index="6" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="9" y="8" width="42" height="48" rx="2"/><path d="M17 19h26m-26 8h20m-20 8h15"/><circle cx="43" cy="42" r="8"/><path d="m39 48-2 9 6-3 5 3-2-9"/></svg></span><span>Certificates</span></button>
+            <button class="radial-app" type="button" data-section="resume" data-index="7" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M14 6h25l11 11v41H14z"/><path d="M39 6v12h11M22 28h20m-20 9h20m-20 9h13"/></svg></span><span>Resume</span></button>
+            <button class="radial-app" type="button" data-section="contact" data-index="8" aria-pressed="false"><span class="app-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="6" y="15" width="52" height="35" rx="2"/><path d="m8 18 24 19 24-19M8 47l17-15m31 15L39 32"/></svg></span><span>Contact</span></button>
+          </div>
+          <button class="control-core" id="openSelectedButton" type="button" aria-label="Open selected portfolio module"><span class="core-mark" aria-hidden="true">D/A</span><strong id="activeModuleName">PROJECTS</strong><span class="core-action">SELECT APP <b aria-hidden="true">▾</b></span></button>
+        </div>
+        <p class="keyboard-hint">Use application buttons or <kbd>←</kbd><kbd>→</kbd> to change module.</p>
+      </section>
+
+      <section class="content-panel panel-shell" aria-live="polite" aria-labelledby="contentTitle">
+        <div class="panel-bar"><span id="contentEyebrow">MODULE / PROFILE</span><span class="panel-code" id="contentCode">01</span></div>
+        <div class="dynamic-content" id="contentPanel" tabindex="-1">
+          <h2 id="contentTitle">Profile</h2>
+        </div>
+        <footer class="panel-controls"><button class="icon-button" id="previousButton" type="button" aria-label="Previous module">←</button><span id="paginationLabel">01 / 09</span><button class="icon-button" id="nextButton" type="button" aria-label="Next module">→</button></footer>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="System navigation">
+      <button type="button" data-action="home" aria-label="Home"><span class="nav-glyph">⌂</span><span>Home</span></button>
+      <button type="button" data-action="recent" aria-label="Recent modules"><span class="nav-glyph">◷</span><span>Recent</span></button>
+      <button type="button" data-action="search" aria-label="Search portfolio"><span class="nav-glyph">⌕</span><span>Search</span></button>
+      <button type="button" data-action="diagnostics" aria-label="Open diagnostics"><span class="nav-glyph">⌁</span><span>Diagnostics</span></button>
+      <div class="nav-readout"><span class="online-dot" aria-hidden="true"></span><b>NETWORK</b><em>READY</em></div>
+      <button class="power-button" type="button" data-action="power" aria-label="Power down interface"><span class="nav-glyph">⏻</span><span>Power</span></button>
+    </nav>
+  </div>
+
+  <section class="bas-page" id="basPage" aria-hidden="true" aria-label="Residential Building Automation System"></section>
+
+  <section class="plc-timeline" id="plcTimeline" aria-hidden="true" aria-label="PLC and automation career timeline"></section>
+
+  <section class="engineering-lab" id="engineeringLab" aria-hidden="true" aria-label="Engineering Lab calculation workspace"></section>
+
+  <section class="projects-library" id="projectsLibrary" aria-hidden="true" aria-label="Projects library"></section>
+
+  <section class="project-case-study" id="projectCaseStudy" aria-hidden="true" aria-label="Project case study"></section>
+
+  <section class="ai-hvac-simulation" id="aiHvacSimulation" aria-hidden="true" aria-label="AI HVAC interactive digital prototype"></section>
+
+  <div class="modal" id="detailsModal" aria-hidden="true" aria-labelledby="modalTitle" aria-modal="true" role="dialog">
+    <section class="modal-window" id="detailsWindow"><header class="panel-bar"><span id="modalLabel">PROJECT RECORD</span><button class="close-button" id="modalClose" type="button" aria-label="Close project detail">×</button></header><div class="modal-content" id="modalContent"><h2 id="modalTitle">Project detail</h2></div></section>
+  </div>
+
+  <div class="modal" id="searchModal" aria-hidden="true" aria-labelledby="searchTitle" aria-modal="true" role="dialog">
+    <section class="modal-window search-window"><header class="panel-bar"><span id="searchTitle">SEARCH PORTFOLIO</span><button class="close-button" id="searchClose" type="button" aria-label="Close search">×</button></header><div class="search-content"><label for="searchInput">Find a portfolio module</label><input id="searchInput" type="search" autocomplete="off" placeholder="Type Profile, Projects, PLC…" /><div id="searchResults" class="search-results"></div></div></section>
+  </div>
+</body>
+</html>
